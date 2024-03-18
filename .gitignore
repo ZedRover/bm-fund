@@ -247,3 +247,6 @@ ipython_config.py
 data/
 **/wandb/
 **/checkpoints/
+
+src/*.txt
+src/notebook/opt_jsons/

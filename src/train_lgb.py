@@ -27,7 +27,7 @@ params = {
     "objective": "regression",
     "metric": "l2",
     "num_leaves": 31,
-    "learning_rate": 5e-3,
+    "learning_rate": 5e-2,
     "feature_fraction": 0.9,
     "bagging_fraction": 0.8,
     "bagging_freq": 5,
@@ -36,6 +36,7 @@ params = {
 }
 val_mets = []
 test_mets = []
+y_test_preds = []
 # 训练模型并进行交叉验证
 for fold, (train_idx, val_idx) in enumerate(kf.split(X_train_val)):
     X_train, X_val = X_train_val.iloc[train_idx], X_train_val.iloc[val_idx]
@@ -51,11 +52,13 @@ for fold, (train_idx, val_idx) in enumerate(kf.split(X_train_val)):
         valid_sets=[val_data],
         num_boost_round=6000,
     )
+    gbm.save_model(f"lgb_fold_model_{fold}.txt")
 
     y_pred_val = gbm.predict(X_val, num_iteration=gbm.best_iteration)
     ic = spearmanr(y_val, y_pred_val).correlation
     r2 = r2_score(y_val, y_pred_val)
     y_test_pred = gbm.predict(X_test, num_iteration=gbm.best_iteration)
+    y_test_preds.append(y_test_pred)
     ic_test = spearmanr(y_test, y_test_pred).correlation
     r2_test = r2_score(y_test, y_test_pred)
 
@@ -81,9 +84,14 @@ final_model.save_model("lgb_model.txt")
 y_test_pred = final_model.predict(X_test, num_iteration=final_model.best_iteration)
 test_ic = spearmanr(y_test, y_test_pred).correlation
 test_r2 = r2_score(y_test, y_test_pred)
+# combined model
+y_combined = np.mean(y_test_preds, axis=0)
+combined_ic = spearmanr(y_test, y_combined).correlation
+combined_r2 = r2_score(y_test, y_combined)
 
 print("Val Set:")
 for i in range(len(val_mets)):
     print(val_mets[i])
     print(test_mets[i])
 print(f"Final Test Set: IC = {test_ic:.4f}, R2 = {test_r2:.4f}")
+print(f"Combined Test Set: IC = {combined_ic:.4f}, R2 = {combined_r2:.4f}")
