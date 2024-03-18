@@ -1,0 +1,2 @@
+预测比赛：
+现有一个金融数据集Xtrain.feather和Ytrain.feather。需要你生成Xtest.feather上Y的预测值，格式要求和Ytrain.feather一样。评价标准是测试集上R2和pearson correlation。
