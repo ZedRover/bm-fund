@@ -249,4 +249,4 @@ data/
 **/checkpoints/
 
 src/*.txt
-src/notebook/opt_jsons/
+src/notebook/opt_jsons/*
