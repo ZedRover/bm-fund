@@ -250,3 +250,4 @@ data/
 
 src/*.txt
 src/notebook/opt_jsons/*
+src/*.db
