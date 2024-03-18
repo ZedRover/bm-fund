@@ -6,6 +6,7 @@ import pytorch_lightning as pl
 from lion_pytorch import Lion
 from torch import Tensor, nn, optim
 from audtorch.metrics.functional import pearsonr as pearsonr_
+from torcheval.metrics.functional import r2_score
 
 
 def nanstd(input_tensor: Tensor, dim: int = 0, keepdim: bool = True) -> Tensor:
@@ -44,13 +45,23 @@ class CCCLoss(nn.Module):
         var_input = th.nanmean((input - mean_input) ** 2)
         var_target = th.nanmean((target - mean_target) ** 2)
         # Calculate Pearson correlation coefficient using audtorch's function
-        pearson_r = pearsonr_(input, target)
+        pearson_r = pearsonr_(input, target, batch_first=False)
         # Calculate the Concordance Correlation Coefficient (CCC)
         ccc = (2 * pearson_r * th.sqrt(var_input) * th.sqrt(var_target)) / (
             var_input + var_target + (mean_input - mean_target) ** 2
         )
         # Return 1 minus the CCC as the loss to be minimized
         return 1 - ccc
+
+
+class R2Loss(nn.Module):
+    """R2 score loss."""
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, pred: Tensor, real: Tensor) -> Tensor:
+        return 1 - r2_score(pred, real)
 
 
 def pearsonr(yhat: Tensor, y: Tensor, batch_first=False) -> Tensor:
@@ -64,8 +75,10 @@ def pearsonr(yhat: Tensor, y: Tensor, batch_first=False) -> Tensor:
 
 def metric_callback(yhat: Tensor, y: Tensor, stage: str = "train"):
     ic = pearsonr(yhat, y, batch_first=False)
+    r2 = r2_score(yhat, y)
     return {
         f"{stage}_ic": ic,
+        f"{stage}_r2": r2,
     }
 
 
@@ -74,6 +87,7 @@ loss_fn_dict: Dict[str, nn.Module] = {
     "corr": CorrLoss(),
     "huber": nn.HuberLoss(delta=1),
     "ccc": CCCLoss(),
+    "r2": R2Loss(),
 }
 
 act_fn_dict: Dict[str, nn.Module] = {

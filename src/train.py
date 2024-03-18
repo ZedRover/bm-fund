@@ -32,6 +32,10 @@ batch_size = args.batch
 
 df_train = pd.read_feather("../data/Xtrain.feather")
 y_train = pd.read_feather("../data/Ytrain.feather")
+
+clip = 5
+y_train = np.clip(y_train, -clip, clip)
+
 n_samples, n_features = df_train.shape
 n_train_test_split = int(n_samples * 0.8)  # 计算 80% 的位置
 X_train_val = np.arange(n_train_test_split)  # 训练+验证集索引
@@ -54,13 +58,13 @@ test_dataset = data.TensorDataset(
     th.tensor(y_train.iloc[X_test].values).float(),
 )
 train_loader = data.DataLoader(
-    train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=4
+    train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=12
 )
 val_loader = data.DataLoader(
-    val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=4
+    val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=12
 )
 test_loader = data.DataLoader(
-    test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=4
+    test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=12
 )
 
 experiment_name = f"NET_f{args.fold}"
@@ -73,6 +77,7 @@ logger.experiment.config.update(
         "tmstamp": TMSTAMP,
         "batch_size": batch_size,
         "fold": args.fold,
+        "clip": clip,
     }
 )
 model_param = {
@@ -83,10 +88,10 @@ model_param = {
         50,
     ],
     "act": "LeakyReLU",
-    "lr": 1e-3,
-    "loss_fn": "corr",
-    "dropout_rate": 0.2,
-    "weight_decay": 0.02,
+    "lr": 1e-4,
+    "loss_fn": "mse",
+    "dropout_rate": 0.05,
+    "weight_decay": 2e-3,
 }
 
 
@@ -107,9 +112,7 @@ earlystop_callback = EarlyStopping(
     patience=5,
 )
 
-gas_callback = GradientAccumulationScheduler(
-    scheduling={2: 4, 3: 8, 4: 10, 5: 12, 6: 25}
-)
+gas_callback = GradientAccumulationScheduler(scheduling={10: 2, 20: 3, 30: 4, 40: 10})
 
 logger.experiment.config.update(model_param)
 
@@ -117,7 +120,7 @@ trainer = pl.Trainer(
     devices=[args.gpu],
     callbacks=[checkpoint_callback, earlystop_callback, gas_callback],
     logger=logger,
-    max_epochs=50,
+    max_epochs=100,
     precision="16-mixed",
     # fast_dev_run=True,
 )
