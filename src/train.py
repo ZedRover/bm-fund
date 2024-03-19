@@ -84,13 +84,14 @@ model_param = {
     "input_size": n_features,
     "output_size": 1,
     "hidden_sizes": [
+        200,
         100,
         50,
     ],
     "act": "LeakyReLU",
     "lr": 1e-4,
     "loss_fn": "mse",
-    "dropout_rate": 0.05,
+    "dropout_rate": 0.2,
     "weight_decay": 2e-3,
 }
 

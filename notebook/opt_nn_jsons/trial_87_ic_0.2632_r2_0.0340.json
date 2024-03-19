@@ -1,0 +1,11 @@
+{
+    "act": "selu",
+    "clip": 8,
+    "dropout_rate": 0.17479693423225645,
+    "hidden_sizes": [
+        60
+    ],
+    "loss_fn": "mse",
+    "lr": 3.398682690471584e-05,
+    "weight_decay": 7.98026675116247e-05
+}

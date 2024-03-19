@@ -74,6 +74,8 @@ def pearsonr(yhat: Tensor, y: Tensor, batch_first=False) -> Tensor:
 
 
 def metric_callback(yhat: Tensor, y: Tensor, stage: str = "train"):
+    yhat = yhat.reshape(-1,1)
+    y = y.reshape(-1,1)
     ic = pearsonr(yhat, y, batch_first=False)
     r2 = r2_score(yhat, y)
     return {
@@ -159,7 +161,7 @@ class Net(pl.LightningModule):
         return cur_output
 
     def _get_reconstruction_loss(self, yhat: Tensor, y: Tensor) -> Tensor:
-        return self.loss(yhat, y)
+        return self.loss(yhat, y.reshape(-1,1))
 
     def training_step(self, batch: Tensor, batch_idx: int):
         x, y = batch

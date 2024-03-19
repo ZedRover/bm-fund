@@ -67,7 +67,7 @@ def objective(trial):
         "input_size": n_features,
         "output_size": 1,
         "hidden_sizes": trial.suggest_categorical(
-            "hidden_sizes", [[50, 50], [100, 50], [100, 100], [50, 50], [60], [80, 60]]
+            "hidden_sizes", [[200,100,50],[300,200,100],[400,200,100],[300,200,100,50],[100,100,100,50],[200,50,100,30]]
         ),
         "act": trial.suggest_categorical("act", ["relu", "leakyrelu", "selu", "silu"]),
         "lr": trial.suggest_loguniform("lr", 1e-5, 1e-3),
@@ -103,7 +103,7 @@ def objective(trial):
     trainer = pl.Trainer(
         max_epochs=100,  # 减少为了演示
         callbacks=[checkpoint_callback, earlystop_callback],
-        devices=[2],  # 适配GPU可用性
+        devices=[1],  # 适配GPU可用性
         logger=logger,
     )
 
@@ -118,13 +118,15 @@ def objective(trial):
 
 
 # 创建一个 Optuna 学习实验，目标是最大化 IC 和 R2
-# study = optuna.create_study(
-#     study_name="nn",
-#     directions=["maximize", "maximize"],
-#     storage="sqlite:///net_study.db",
-# )
-study = optuna.load_study(study_name="nn", storage="sqlite:///net_study.db")
-study.optimize(objective, n_trials=100)  # 运行的试验次数
+try:
+    study = optuna.create_study(
+    study_name="nn-large",
+    directions=["maximize", "maximize"],
+    storage="sqlite:///net_study.db",
+)
+except:
+    study = optuna.load_study(study_name="nn-large", storage="sqlite:///net_study.db")
+study.optimize(objective, n_trials=20)  # 运行的试验次数
 
 print("Number of finished trials:", len(study.trials))
 print("Best trial:")

@@ -1,0 +1,11 @@
+{
+    "act": "LeakyReLU",
+    "clip": 5,
+    "dropout_rate": 0.2,
+    "hidden_sizes": [
+        200,100,50
+    ],
+    "loss_fn": "mse",
+    "lr": 1e-4,
+    "weight_decay": 0.002
+}

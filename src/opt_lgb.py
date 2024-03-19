@@ -6,7 +6,9 @@ from scipy.stats import spearmanr
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 import warnings
+
 warnings.filterwarnings("ignore")
+
 
 def objective(trial):
     # 加载数据
@@ -58,10 +60,12 @@ def objective(trial):
     return ic, r2
 
 
-study = optuna.create_study(
-    directions=["maximize", "maximize"], storage="sqlite:///lgb_study.db"
-)
-# study = optuna.load_study(study_name="lgb_study", storage="sqlite:///lgb_study.db")
+# study = optuna.create_study(
+#     study_name="lgb",
+#     directions=["maximize", "maximize"],
+#     storage="sqlite:///lgb_study.db",
+# )
+study = optuna.load_study(study_name="lgb", storage="sqlite:///lgb_study.db")
 study.optimize(objective, n_trials=100)
 
 print("Number of finished trials:", len(study.trials))
